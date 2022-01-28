@@ -3,9 +3,11 @@
 
 !=======================================================================
 !=======================================================================
-! Specify number of grids to create (ng)
+! Specify number of grids to create (ng_total)
+! For each grid type, specifcy number of grids (ng) for that specific
+! type in the appropriate namelist
 &General_Data
-    ng = 2  ! Number of grid files
+    ng_total = 2  ! Total number of grid files
 /&END
 
 !=======================================================================
@@ -78,17 +80,19 @@
 !=======================================================================
 ! Inputs for Cylinder data only to be read if cylinder grids are present
 ! INPUTS PER CYLINDER GRID:
-!		rmin(n) = !> cylinder radius 
-!		rmax(n) = !> cylinder grid outer radius 
-!		b(n)    = !> circumferential cell-size bias in wake (0.5 is normal)
-!   xc(n)   = !> x center location  
-!   yc(n)   = !> y center location  
+!		rmin(n)  = !> cylinder radius 
+!		rmax(n)  = !> cylinder grid outer radius 
+!		b(n)     = !> circumferential cell-size bias in wake (0.5 is normal)
+!   xc(n)    = !> x center location  
+!   yc(n)    = !> y center location  
+!   zspan(n) = !> cylinder z-span
 &Cylinder_Data
-	rmin(1) = 0.5 !> cylinder radius 
-	rmax(1) = 100 !> cylinder grid outer radius 
-	b(1)    = 0.5 !> circumferential cell-size bias in wake
-	xc(1)   = 0.0 !> x center location  
-	yc(1)   = 0.0 !> y center location  
+	rmin(1)  = 0.5 !> cylinder radius 
+	rmax(1)  = 100 !> cylinder grid outer radius 
+	b(1)     = 0.5 !> circumferential cell-size bias in wake
+	xc(1)    = 0.0 !> x center location  
+	yc(1)    = 0.0 !> y center location 
+  zspan(1) = !> cylinder z-span
 /&END
 !=======================================================================
 !=======================================================================

@@ -4,7 +4,7 @@
 !	Description: Main driver for grid generation program
 !======================================================================
 PROGRAM main
-    USE mod_file_io
+    USE mod_grid_setup
     IMPLICIT NONE
     !!TODO: Main code
     CALL read_grid_parameters

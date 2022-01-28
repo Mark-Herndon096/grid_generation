@@ -1,14 +1,19 @@
 !======================================================================
 !	Author: Mark Herndon
 !	Date: 01/27/2022
-!	Description: Module for grid generation program file I/O
+!	Description: Module for grid generation file I/O and parameters
 !======================================================================
-MODULE mod_file_io
+MODULE mod_grid_setup
     IMPLICIT NONE
-    INTEGER :: ng !> number of grids to generate
-    INTEGER, DIMENSION(:), ALLOCATABLE :: ni, nj, nk
-    CHARACTER(LEN=100),    ALLOCATABLE :: fname(:)
-    CHARACTER(LEN=20),     ALLOCATABLE :: grid_type(:)
+    INTEGER :: ng_total !> total number of grids to generate
+    INTEGER :: ng       !> number of grids to generate 
+    INTEGER, DIMENSION(:),      ALLOCATABLE :: ni, nj, nk
+    REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: xc, yc, zc 
+    REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: xspan 
+    REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: yspan 
+    REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: zspan 
+    CHARACTER(LEN=100),         ALLOCATABLE :: fname(:)
+    CHARACTER(LEN=20),          ALLOCATABLE :: grid_type(:)
     ! PERMISSIBLE GRID TYPE PARAMETERS
     CHARACTER(LEN=20), PARAMETER :: gtype1  = 'cylinder'
     CHARACTER(LEN=20), PARAMETER :: gtype2  = 'box_uniform'
@@ -40,7 +45,6 @@ SUBROUTINE read_grid_parameters
     
     input_fname = 'grid_parameters.dat'
     NAMELIST /General_Data/ ng
-    NAMELIST /Grid_Dimensions/ ni, nj, nk
     NAMELIST /Grid_Filenames/ fname
     NAMELIST /Grid_Type_Data/ grid_type
 
@@ -56,32 +60,14 @@ SUBROUTINE read_grid_parameters
         WRITE(stderr, '(3a)') 'Error reading namelist General_Data in "', trim(input_fname),'"'
     END IF
 
-    ! ALLOCATION BLOCK
-    ALLOCATE(ni(ng)) 
-    ALLOCATE(nj(ng)) 
-    ALLOCATE(nk(ng))
     ALLOCATE(fname(ng))
     ALLOCATE(grid_type(ng))
     !============================================================= 
-    READ(NML=Grid_Dimensions, UNIT=f_unit, iostat=io_stat) 
-    IF (io_stat /= 0) THEN
-        WRITE(stderr, '(3a)') 'Error reading namelist Grid_Dimensions in "', trim(input_fname),'"'
-    END IF
-
-    WRITE(*,*) 'ni(1) = ', ni(1)    
-    WRITE(*,*) 'nj(1) = ', nj(1)    
-    WRITE(*,*) 'nk(1) = ', nk(1)    
-    WRITE(*,*) 'ni(2) = ', ni(2)    
-    WRITE(*,*) 'nj(2) = ', nj(2)    
-    WRITE(*,*) 'nk(2) = ', nk(2)    
 
     READ(NML=Grid_Filenames, UNIT=f_unit, iostat=io_stat) 
     IF (io_stat /= 0) THEN
         WRITE(stderr, '(3a)') 'Error reading namelist Grid_Filenames in "', trim(input_fname),'"'
     END IF
-    
-    WRITE(*,*) 'fname(1) : ', TRIM(fname(1))
-    WRITE(*,*) 'fname(2) : ', TRIM(fname(2))
     
     READ(NML=Grid_Type_Data, UNIT=f_unit, iostat=io_stat) 
     IF (io_stat /= 0) THEN
@@ -140,5 +126,5 @@ SUBROUTINE read_grid_parameters
 END SUBROUTINE read_grid_parameters
 !=======================================================================
 !=======================================================================
-END MODULE mod_file_io
+END MODULE mod_grid_setup
 !======================================================================

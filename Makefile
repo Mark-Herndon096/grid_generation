@@ -29,7 +29,7 @@ export COMPFLAGS
 EXEC_NAME = grid_generator.exe
 
 # Object list
-OBJECTS = mod_file_io.o \
+OBJECTS = mod_grid_setup.o \
 	  main.o
 
 %.o: %.f90; $(FC) $(COMPFLAGS) $(FCFLAGS) -c -o $@ $<
