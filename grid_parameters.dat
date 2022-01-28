@@ -6,30 +6,18 @@
 ! Specify number of grids to create (ng_total)
 ! For each grid type, specifcy number of grids (ng) for that specific
 ! type in the appropriate namelist
-&General_Data
-    ng_total = 2  ! Total number of grid files
+&GENERAL_DATA
+    ng_total = 6  ! Total number of grid files
 /&END
-
 !=======================================================================
 !=======================================================================
-! Populate grid dimensions in accordance with grid number
-!	ni(n) = ni (number of grid points in i-direction for grid number n
-!	nj(n) = nj (number of grid points in j-direction for grid number n
-!	nk(n) = nk (number of grid points in k-direction for grid number n
-&Grid_Dimensions
-    ni(1) = 121 
-    nj(1) = 151
-    nk(1) = 7
-    ni(2) = 161 
-    nj(2) = 181
-    nk(2) = 7
-/&END
-
-!=======================================================================
-!=======================================================================
-&Grid_Filenames
+&GRID_FILENAMES
     fname(1) = 'grid_1.x'
     fname(2) = 'grid_2.x'
+    fname(3) = 'grid_2.x'
+    fname(4) = 'grid_2.x'
+    fname(5) = 'grid_2.x'
+    fname(6) = 'grid_2.x'
 /&END
 
 !=======================================================================
@@ -57,11 +45,13 @@
 !		grid_type(n) = 'wall_boundary_yz'
 !		grid_type(n) = 'wall_boundary_xyz'
 
-&Grid_Type_Data
+&GrID_TYPE_DATA
 	grid_type(1)  = 'cylinder'
 	grid_type(2)  = 'box_uniform'
-!	grid_type(3)  = 'box_stretched_x'
-!	grid_type(4)  = 'box_stretched_y'
+	grid_type(3)  = 'box_uniform'
+	grid_type(4)  = 'box_uniform'
+ 	grid_type(5)  = 'box_stretched_x'
+ 	grid_type(6)  = 'box_stretched_y'
 !	grid_type(5)  = 'box_stretched_z'
 !	grid_type(6)  = 'box_stretched_xy'
 !	grid_type(7)  = 'box_stretched_xz'
@@ -76,17 +66,30 @@
 !	grid_type(16) = 'wall_boundary_xyz'
 /&END
 
-!=======================================================================
-!=======================================================================
+
+! Populate grid dimensions in accordance with grid number
+!	ni(n) = ni (number of grid points in i-direction for grid number n
+!	nj(n) = nj (number of grid points in j-direction for grid number n
+!	nk(n) = nk (number of grid points in k-direction for grid number n
+&GRID_DIMENSIONS
+	ni(1) = 121
+	nj(1) = 151
+	nk(1) = 7
+/&END
+
 ! Inputs for Cylinder data only to be read if cylinder grids are present
 ! INPUTS PER CYLINDER GRID:
+!  	ni(n) = ni (number of grid points in i-direction for grid number n)
+!  	nj(n) = nj (number of grid points in j-direction for grid number n)
+!	  nk(n) = nk (number of grid points in k-direction for grid number n)
 !		rmin(n)  = !> cylinder radius 
 !		rmax(n)  = !> cylinder grid outer radius 
 !		b(n)     = !> circumferential cell-size bias in wake (0.5 is normal)
 !   xc(n)    = !> x center location  
 !   yc(n)    = !> y center location  
 !   zspan(n) = !> cylinder z-span
-&Cylinder_Data
+
+&CYLINDER_DATA
 	rmin(1)  = 0.5 !> cylinder radius 
 	rmax(1)  = 100 !> cylinder grid outer radius 
 	b(1)     = 0.5 !> circumferential cell-size bias in wake
@@ -94,6 +97,8 @@
 	yc(1)    = 0.0 !> y center location 
   zspan(1) = !> cylinder z-span
 /&END
+
+
 !=======================================================================
 !=======================================================================
 !Inputs for box_uniform data only to be read if box_uniform grids are pr
@@ -105,7 +110,7 @@
 !	ystart(n) = !> starting y-coordinate of box		
 !	zstart(n) = !> starting z-coordinate of box		
 !
-&Uniform_Box_Data
+&UNIFORM_BOX_DATA
 	xspan(1)  = !> box xspan
 	yspan(1)  = !> box xspan
 	zspan(1)  = !> box xspan

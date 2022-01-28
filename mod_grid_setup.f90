@@ -8,11 +8,13 @@ MODULE mod_grid_setup
     INTEGER :: ng_total !> total number of grids to generate
     INTEGER :: ng       !> number of grids to generate 
     INTEGER, DIMENSION(:),      ALLOCATABLE :: ni, nj, nk
+    INTEGER, DIMENSION(:,:),    ALLOCATABLE :: dims
     REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: xc, yc, zc 
     REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: rmin, rmax, b
     REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: xspan, xstart
     REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: yspan, ystart 
     REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: zspan, zstart
+
     CHARACTER(LEN=100),         ALLOCATABLE :: fname(:)
     CHARACTER(LEN=20),          ALLOCATABLE :: grid_type(:)
     ! PERMISSIBLE GRID TYPE PARAMETERS
@@ -33,57 +35,28 @@ MODULE mod_grid_setup
     CHARACTER(LEN=20), PARAMETER :: gtype15 = 'wall_boundary_yz'
     CHARACTER(LEN=20), PARAMETER :: gtype16 = 'wall_boundary_xyz'
     CHARACTER(LEN=20)            :: grid_type_selector
+    CHARACTER(LEN=20), ALLOCATABLE :: grid_type_array(:)
+    INTEGER, DIMENSION(16) :: grid_type_counter 
 
-    NAMELIST /General_Data/ ng
-    NAMELIST /Grid_Filenames/ fname
-    NAMELIST /Grid_Type_Data/ grid_type
-    NAMELIST /cylinder_data/          ni, nj, nk, rmin, rmax, b, xc,  &
-                                      yc, zspan
-
-    NAMELIST /box_uniform_data/       ni, nj, nk, xspan, yspan, zspan,& 
-                                      xstart, ystart, zstart 
-
-    NAMELIST /box_stretched_x_data/   ni, nj, nk, xspan, yspan, zspan,&
-                                      xstart, ystart, zstart 
-
-    NAMELIST /box_stretched_y_data/   ni, nj, nk, xspan, yspan, zspan,& 
-                                      xstart, ystart, zstart 
-
-    NAMELIST /box_stretched_z_data/   ni, nj, nk, xspan, yspan, zspan,& 
-                                      xstart, ystart, zstart 
-
-    NAMELIST /box_stretched_xy_data/  ni, nj, nk, xspan, yspan, zspan,& 
-                                      xstart, ystart, zstart 
-    
-    NAMELIST /box_stretched_xz_data/  ni, nj, nk, xspan, yspan, zspan,& 
-                                      xstart, ystart, zstart 
-
-    NAMELIST /box_stretched_yz_data/  ni, nj, nk, xspan, yspan, zspan,& 
-                                      xstart, ystart, zstart 
-
-    NAMELIST /box_stretched_xyx_data/ ni, nj, nk, xspan, yspan, zspan,& 
-                                      xstart, ystart, zstart 
-
-    NAMELIST /wall_boundary_x_data/   ni, nj, nk, xspan, yspan, zspan,& 
-                                      xstart, ystart, zstart 
-
-    NAMELIST /wall_boundary_y_data/   ni, nj, nk, xspan, yspan, zspan,& 
-                                      xstart, ystart, zstart 
-
-    NAMELIST /wall_boundary_z_data/   ni, nj, nk, xspan, yspan, zspan,& 
-                                      xstart, ystart, zstart 
-    
-    NAMELIST /wall_boundary_xy_data/  ni, nj, nk, xspan, yspan, zspan,& 
-                                      xstart, ystart, zstart 
-
-    NAMELIST /wall_boundary_xz_data/  ni, nj, nk, xspan, yspan, zspan,& 
-                                      xstart, ystart, zstart 
-
-    NAMELIST /wall_boundary_yz_data/  ni, nj, nk, xspan, yspan, zspan,& 
-                                      xstart, ystart, zstart 
-
-    NAMELIST /wall_boundary_xyx_data/ ni, nj, nk, xspan, yspan, zspan,& 
-                                      xstart, ystart, zstart   
+    NAMELIST /general_data/           ng_total
+    NAMELIST /grid_filenames/         fname
+    NAMELIST /grid_type_data/         grid_type
+    NAMELIST /cylinder_data/          dims, rmin, rmax, b, xc, yc, zspan
+    NAMELIST /box_uniform_data/       dims, xspan, yspan, zspan, xstart, ystart, zstart 
+    NAMELIST /box_stretched_x_data/   dims, xspan, yspan, zspan, xstart, ystart, zstart
+    NAMELIST /box_stretched_y_data/   dims, xspan, yspan, zspan, xstart, ystart, zstart 
+    NAMELIST /box_stretched_z_data/   dims, xspan, yspan, zspan, xstart, ystart, zstart 
+    NAMELIST /box_stretched_xy_data/  dims, xspan, yspan, zspan, xstart, ystart, zstart 
+    NAMELIST /box_stretched_xz_data/  dims, xspan, yspan, zspan, xstart, ystart, zstart 
+    NAMELIST /box_stretched_yz_data/  dims, xspan, yspan, zspan, xstart, ystart, zstart 
+    NAMELIST /box_stretched_xyx_data/ dims, xspan, yspan, zspan, xstart, ystart, zstart 
+    NAMELIST /wall_boundary_x_data/   dims, xspan, yspan, zspan, xstart, ystart, zstart 
+    NAMELIST /wall_boundary_y_data/   dims, xspan, yspan, zspan, xstart, ystart, zstart 
+    NAMELIST /wall_boundary_z_data/   dims, xspan, yspan, zspan, xstart, ystart, zstart 
+    NAMELIST /wall_boundary_xy_data/  dims, xspan, yspan, zspan, xstart, ystart, zstart
+    NAMELIST /wall_boundary_xz_data/  dims, xspan, yspan, zspan, xstart, ystart, zstart
+    NAMELIST /wall_boundary_yz_data/  dims, xspan, yspan, zspan, xstart, ystart, zstart
+    NAMELIST /wall_boundary_xyx_data/ dims, xspan, yspan, zspan, xstart, ystart, zstart  
 CONTAINS
 
 !! SUBROUTINES AND FUNCTIONS
@@ -106,75 +79,114 @@ SUBROUTINE read_grid_parameters
    
  
     OPEN(FILE=TRIM(input_fname), newunit=f_unit, ACTION='READ',STATUS='OLD')
-    READ(NML=General_Data, UNIT=f_unit, iostat=io_stat) 
+    READ(NML=general_data, UNIT=f_unit, iostat=io_stat) 
     IF (io_stat /= 0) THEN
-        WRITE(stderr, '(3a)') 'Error reading namelist General_Data in "', trim(input_fname),'"'
+        WRITE(stderr, '(3a)') 'Error reading namelist general_data in "', trim(input_fname),'"'
     END IF
 
-    ALLOCATE(fname(ng))
-    ALLOCATE(grid_type(ng))
+    ALLOCATE(fname(ng_total))
+    ALLOCATE(grid_type(ng_total))
     !============================================================= 
 
-    READ(NML=Grid_Filenames, UNIT=f_unit, iostat=io_stat) 
+    READ(NML=grid_filenames, UNIT=f_unit, iostat=io_stat) 
     IF (io_stat /= 0) THEN
         WRITE(stderr, '(3a)') 'Error reading namelist Grid_Filenames in "', trim(input_fname),'"'
     END IF
     
-    READ(NML=Grid_Type_Data, UNIT=f_unit, iostat=io_stat) 
+    READ(NML=grid_type_data, UNIT=f_unit, iostat=io_stat) 
     IF (io_stat /= 0) THEN
-        WRITE(stderr, '(3a)') 'Error reading namelist Grid_Type_Data in "', trim(input_fname),'"'
+        WRITE(stderr, '(3a)') 'Error reading namelist grid_type_data in "', trim(input_fname),'"'
     END IF
-    CLOSE(f_unit)
+
+    CALL get_grid_type_count
     
-    DO i = 1, ng
-        grid_type_selector = grid_type(i)
-         
-        SELECT CASE ( grid_type_selector ) 
-            CASE ( gtype1 )
-                WRITE(*,*) 'gtype == ', TRIM(gtype1)
+    CLOSE(f_unit)
 
-            CASE ( gtype2 )
-                WRITE(*,*) 'gtype == ', TRIM(gtype2)
+    !DO i = 1, ng_total
+    !    grid_type_selector = grid_type(i)
+    !    SELECT CASE ( grid_type_selector ) 
+    !        CASE ( gtype1 )
+    !            WRITE(*,*) 'gtype == ', TRIM(gtype1)
 
-            CASE ( gtype3 )
-                WRITE(*,*) 'gtype == ', TRIM(gtype3)
+    !        CASE ( gtype2 )
+    !            WRITE(*,*) 'gtype == ', TRIM(gtype2)
 
-            CASE ( gtype4 )
-                WRITE(*,*) 'gtype == ', TRIM(gtype4)
+    !        CASE ( gtype3 )
+    !            WRITE(*,*) 'gtype == ', TRIM(gtype3)
 
-            CASE ( gtype5 )
-                WRITE(*,*) 'gtype == ', TRIM(gtype5)
+    !        CASE ( gtype4 )
+    !            WRITE(*,*) 'gtype == ', TRIM(gtype4)
 
-            CASE ( gtype6 )
-                WRITE(*,*) 'gtype == ', TRIM(gtype6)
+    !        CASE ( gtype5 )
+    !            WRITE(*,*) 'gtype == ', TRIM(gtype5)
 
-            CASE ( gtype7 )
-                WRITE(*,*) 'gtype == ', TRIM(gtype7)
-        
-            CASE ( gtype8 )
-                WRITE(*,*) 'gtype == ', TRIM(gtype8)
+    !        CASE ( gtype6 )
+    !            WRITE(*,*) 'gtype == ', TRIM(gtype6)
 
-            CASE ( gtype9 )
-                WRITE(*,*) 'gtype == ', TRIM(gtype9)
+    !        CASE ( gtype7 )
+    !            WRITE(*,*) 'gtype == ', TRIM(gtype7)
+    !    
+    !        CASE ( gtype8 )
+    !            WRITE(*,*) 'gtype == ', TRIM(gtype8)
 
-            CASE ( gtype10 )
-                WRITE(*,*) 'gtype == ', TRIM(gtype10)
+    !        CASE ( gtype9 )
+    !            WRITE(*,*) 'gtype == ', TRIM(gtype9)
 
-            CASE ( gtype11 )
-                WRITE(*,*) 'gtype == ', TRIM(gtype11)
+    !        CASE ( gtype10 )
+    !            WRITE(*,*) 'gtype == ', TRIM(gtype10)
 
-            CASE ( gtype12 )
-                WRITE(*,*) 'gtype == ', TRIM(gtype12)
+    !        CASE ( gtype11 )
+    !            WRITE(*,*) 'gtype == ', TRIM(gtype11)
 
-            CASE ( gtype13 )
-                WRITE(*,*) 'gtype == ', TRIM(gtype13)
+    !        CASE ( gtype12 )
+    !            WRITE(*,*) 'gtype == ', TRIM(gtype12)
 
-            CASE DEFAULT
-                WRITE(*,*) 'SPECIFY VALID GRID TYPE'
-        END SELECT
-    END DO
+    !        CASE ( gtype13 )
+    !            WRITE(*,*) 'gtype == ', TRIM(gtype13)
+
+    !        CASE DEFAULT
+    !            WRITE(*,*) 'SPECIFY VALID GRID TYPE'
+    !    END SELECT
+    !END DO
     
 END SUBROUTINE read_grid_parameters
+!=======================================================================
+!=======================================================================
+SUBROUTINE get_grid_type_count
+    IMPLICIT NONE
+    INTEGER :: i, j, k, n 
+    grid_type_counter(:) = 0;
+    ALLOCATE(grid_type_array(16))
+    grid_type_array(1)  = gtype1
+    grid_type_array(2)  = gtype2
+    grid_type_array(3)  = gtype3
+    grid_type_array(4)  = gtype4
+    grid_type_array(5)  = gtype5
+    grid_type_array(6)  = gtype6
+    grid_type_array(7)  = gtype7
+    grid_type_array(8)  = gtype8
+    grid_type_array(9)  = gtype9
+    grid_type_array(10) = gtype10
+    grid_type_array(11) = gtype11
+    grid_type_array(12) = gtype12
+    grid_type_array(13) = gtype13
+    grid_type_array(14) = gtype14
+    grid_type_array(15) = gtype15
+    grid_type_array(16) = gtype16
+    
+    DO n = 1, ng_total
+        DO i = 1, 16
+            IF ( grid_type(n) .EQ. grid_type_array(i) ) THEN
+                grid_type_counter(i) = grid_type_counter(i) + 1
+    !            WRITE(*,'(A,I0,A,A)') 'grid number ', n,' has grid type ', grid_type(n)
+    !            WRITE(*,'(A,I0)') 'total grids of this type --> ', grid_type_counter(i)
+            END IF
+        END DO
+    END DO
+    
+    
+
+END SUBROUTINE get_grid_type_count
 !=======================================================================
 !=======================================================================
 END MODULE mod_grid_setup
