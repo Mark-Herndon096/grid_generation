@@ -9,9 +9,10 @@ MODULE mod_grid_setup
     INTEGER :: ng       !> number of grids to generate 
     INTEGER, DIMENSION(:),      ALLOCATABLE :: ni, nj, nk
     REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: xc, yc, zc 
-    REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: xspan 
-    REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: yspan 
-    REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: zspan 
+    REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: rmin, rmax, b
+    REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: xspan, xstart
+    REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: yspan, ystart 
+    REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: zspan, zstart
     CHARACTER(LEN=100),         ALLOCATABLE :: fname(:)
     CHARACTER(LEN=20),          ALLOCATABLE :: grid_type(:)
     ! PERMISSIBLE GRID TYPE PARAMETERS
@@ -32,6 +33,57 @@ MODULE mod_grid_setup
     CHARACTER(LEN=20), PARAMETER :: gtype15 = 'wall_boundary_yz'
     CHARACTER(LEN=20), PARAMETER :: gtype16 = 'wall_boundary_xyz'
     CHARACTER(LEN=20)            :: grid_type_selector
+
+    NAMELIST /General_Data/ ng
+    NAMELIST /Grid_Filenames/ fname
+    NAMELIST /Grid_Type_Data/ grid_type
+    NAMELIST /cylinder_data/          ni, nj, nk, rmin, rmax, b, xc,  &
+                                      yc, zspan
+
+    NAMELIST /box_uniform_data/       ni, nj, nk, xspan, yspan, zspan,& 
+                                      xstart, ystart, zstart 
+
+    NAMELIST /box_stretched_x_data/   ni, nj, nk, xspan, yspan, zspan,&
+                                      xstart, ystart, zstart 
+
+    NAMELIST /box_stretched_y_data/   ni, nj, nk, xspan, yspan, zspan,& 
+                                      xstart, ystart, zstart 
+
+    NAMELIST /box_stretched_z_data/   ni, nj, nk, xspan, yspan, zspan,& 
+                                      xstart, ystart, zstart 
+
+    NAMELIST /box_stretched_xy_data/  ni, nj, nk, xspan, yspan, zspan,& 
+                                      xstart, ystart, zstart 
+    
+    NAMELIST /box_stretched_xz_data/  ni, nj, nk, xspan, yspan, zspan,& 
+                                      xstart, ystart, zstart 
+
+    NAMELIST /box_stretched_yz_data/  ni, nj, nk, xspan, yspan, zspan,& 
+                                      xstart, ystart, zstart 
+
+    NAMELIST /box_stretched_xyx_data/ ni, nj, nk, xspan, yspan, zspan,& 
+                                      xstart, ystart, zstart 
+
+    NAMELIST /wall_boundary_x_data/   ni, nj, nk, xspan, yspan, zspan,& 
+                                      xstart, ystart, zstart 
+
+    NAMELIST /wall_boundary_y_data/   ni, nj, nk, xspan, yspan, zspan,& 
+                                      xstart, ystart, zstart 
+
+    NAMELIST /wall_boundary_z_data/   ni, nj, nk, xspan, yspan, zspan,& 
+                                      xstart, ystart, zstart 
+    
+    NAMELIST /wall_boundary_xy_data/  ni, nj, nk, xspan, yspan, zspan,& 
+                                      xstart, ystart, zstart 
+
+    NAMELIST /wall_boundary_xz_data/  ni, nj, nk, xspan, yspan, zspan,& 
+                                      xstart, ystart, zstart 
+
+    NAMELIST /wall_boundary_yz_data/  ni, nj, nk, xspan, yspan, zspan,& 
+                                      xstart, ystart, zstart 
+
+    NAMELIST /wall_boundary_xyx_data/ ni, nj, nk, xspan, yspan, zspan,& 
+                                      xstart, ystart, zstart   
 CONTAINS
 
 !! SUBROUTINES AND FUNCTIONS
@@ -44,9 +96,8 @@ SUBROUTINE read_grid_parameters
     LOGICAL :: ex_stat
     
     input_fname = 'grid_parameters.dat'
-    NAMELIST /General_Data/ ng
-    NAMELIST /Grid_Filenames/ fname
-    NAMELIST /Grid_Type_Data/ grid_type
+
+
 
     INQUIRE (FILE=TRIM(input_fname), EXIST=ex_stat)
     IF (ex_stat .EQ. 0) THEN
