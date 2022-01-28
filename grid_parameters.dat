@@ -1,69 +1,116 @@
 ! Input file for grid genereation
 ! Create cylindrical or cartesian grids with and without stretching
 
+!=======================================================================
+!=======================================================================
+! Specify number of grids to create (ng)
 &General_Data
-	ng = 2						! Number of grid files
+    ng = 2  ! Number of grid files
 /&END
 
+!=======================================================================
+!=======================================================================
 ! Populate grid dimensions in accordance with grid number
 !	ni(n) = ni (number of grid points in i-direction for grid number n
 !	nj(n) = nj (number of grid points in j-direction for grid number n
 !	nk(n) = nk (number of grid points in k-direction for grid number n
-
 &Grid_Dimensions
-	ni(1) = 121 
-	nj(1) = 151
-	nk(1) = 7
-	ni(2) = 161 
-	nj(2) = 181
-	nk(2) = 7
+    ni(1) = 121 
+    nj(1) = 151
+    nk(1) = 7
+    ni(2) = 161 
+    nj(2) = 181
+    nk(2) = 7
 /&END
 
+!=======================================================================
+!=======================================================================
 &Grid_Filenames
-  fname(1) = 'grid_1.x'
-  fname(2) = 'grid_2.x'
+    fname(1) = 'grid_1.x'
+    fname(2) = 'grid_2.x'
 /&END
 
-! Grid Type namelist example of all possible options
-! Must include appropriate control points xc, yc, zc, 
-! and stretching parameters tau_x, tau_y, tau_z 
-! for stretched grids
-! &Grid_Type
-! 	grid_type(1) = 'cylinder'
-! 	grid_type(2) = 'box_uniform'
-! 	grid_type(3) = 'box_stretched_x'
-! 	grid_type(3) = 'box_stretched_y'
-! 	grid_type(3) = 'box_stretched_z'
-! 	grid_type(3) = 'box_stretched_xy'
-! 	grid_type(3) = 'box_stretched_xz'
-! 	grid_type(3) = 'box_stretched_yz'
-! 	grid_type(3) = 'box_stretched_xyz'
-! 	grid_type(3) = 'wall_boundary_x'
-! 	grid_type(3) = 'wall_boundary_y'
-! 	grid_type(3) = 'wall_boundary_z'
-! 	grid_type(3) = 'wall_boundary_xy'
-! 	grid_type(3) = 'wall_boundary_xz'
-! 	grid_type(3) = 'wall_boundary_yz'
-! 	grid_type(3) = 'wall_boundary_xyz'
-! /&END
+!=======================================================================
+!=======================================================================
+! Grid Type namelist -- ONLY ONE TYPE PER GRID NUMBER
+! Once specified grid_type, include appropraite grid parameters
+! in designated grid_type_data namelist per grid.
+! Definition of grid types and parameter meanings defined in namelist 
+!
+! TYPES:
+!		grid_type(n) = 'cylinder'
+!		grid_type(n) = 'box_uniform'
+!		grid_type(n) = 'box_stretched_x'
+!		grid_type(n) = 'box_stretched_y'
+!		grid_type(n) = 'box_stretched_z'
+!		grid_type(n) = 'box_stretched_xy'
+!		grid_type(n) = 'box_stretched_xz'
+!		grid_type(n) = 'box_stretched_yz'
+!		grid_type(n) = 'box_stretched_xyz'
+!		grid_type(n) = 'wall_boundary_x'
+!		grid_type(n) = 'wall_boundary_y'
+!		grid_type(n) = 'wall_boundary_z'
+!		grid_type(n) = 'wall_boundary_xy'
+!		grid_type(n) = 'wall_boundary_xz'
+!		grid_type(n) = 'wall_boundary_yz'
+!		grid_type(n) = 'wall_boundary_xyz'
 
+&Grid_Type_Data
+	grid_type(1)  = 'cylinder'
+	grid_type(2)  = 'box_uniform'
+!	grid_type(3)  = 'box_stretched_x'
+!	grid_type(4)  = 'box_stretched_y'
+!	grid_type(5)  = 'box_stretched_z'
+!	grid_type(6)  = 'box_stretched_xy'
+!	grid_type(7)  = 'box_stretched_xz'
+!	grid_type(8)  = 'box_stretched_yz'
+!	grid_type(9)  = 'box_stretched_xyz'
+!	grid_type(10) = 'wall_boundary_x'
+!	grid_type(11) = 'wall_boundary_y'
+!	grid_type(12) = 'wall_boundary_z'
+!	grid_type(13) = 'wall_boundary_xy'
+!	grid_type(14) = 'wall_boundary_xz'
+!	grid_type(15) = 'wall_boundary_yz'
+!	grid_type(16) = 'wall_boundary_xyz'
+/&END
+
+!=======================================================================
+!=======================================================================
 ! Inputs for Cylinder data only to be read if cylinder grids are present
 ! INPUTS PER CYLINDER GRID:
-!					rmin(n) = !> cylinder radius 
-!					rmax(n) = !> cylinder grid outer radius 
-!					b(n)    = !> circumferential cell-size bias in wake (0.5 is normal)
-!         xc(n)   = !> x center location  
-!         yc(n)   = !> y center location  
+!		rmin(n) = !> cylinder radius 
+!		rmax(n) = !> cylinder grid outer radius 
+!		b(n)    = !> circumferential cell-size bias in wake (0.5 is normal)
+!   xc(n)   = !> x center location  
+!   yc(n)   = !> y center location  
 &Cylinder_Data
 	rmin(1) = 0.5 !> cylinder radius 
 	rmax(1) = 100 !> cylinder grid outer radius 
-	b(1)    = 0.5 !> circumferential cell-size bias in wake (0.5 is normal)
+	b(1)    = 0.5 !> circumferential cell-size bias in wake
 	xc(1)   = 0.0 !> x center location  
 	yc(1)   = 0.0 !> y center location  
 /&END
-
-
-
+!=======================================================================
+!=======================================================================
+!Inputs for box_uniform data only to be read if box_uniform grids are pr
+! INPUTS PER UNIFORM CARTESIAN BOX GRID:
+!	xspan(n)  = !> box xspan
+!	yspan(n)  = !> box xspan
+!	zspan(n)  = !> box xspan
+!	xstart(n) = !> starting x-coordinate of box		
+!	ystart(n) = !> starting y-coordinate of box		
+!	zstart(n) = !> starting z-coordinate of box		
+!
+&Uniform_Box_Data
+	xspan(1)  = !> box xspan
+	yspan(1)  = !> box xspan
+	zspan(1)  = !> box xspan
+	xstart(1) = !> starting x-coordinate of box		
+	ystart(1) = !> starting y-coordinate of box		
+	zstart(1) = !> starting z-coordinate of box		
+/&END
+!=======================================================================
+!=======================================================================
 
 
 
