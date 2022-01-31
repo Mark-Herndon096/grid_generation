@@ -6,7 +6,6 @@
 MODULE mod_grid_setup
     IMPLICIT NONE
     INTEGER :: ng_total !> total number of grids to generate
-    INTEGER :: ng       !> number of grids to generate 
     INTEGER, DIMENSION(:),      ALLOCATABLE :: ni, nj, nk
     INTEGER, DIMENSION(:,:),    ALLOCATABLE :: dims
     REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: xc, yc, zc 
@@ -152,6 +151,15 @@ SUBROUTINE read_grid_parameters
 END SUBROUTINE read_grid_parameters
 !=======================================================================
 !=======================================================================
+SUBROUTINE prepare_grid_variables(ng,grid_type_str)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: ng
+    CHARACTER(LEN=*), INTENT(IN) :: grid_type_str
+    WRITE(*,'(A,I0,A,A)') 'Creating ', ng, ' grids of type ', TRIM(grid_type_str)
+
+END SUBROUTINE prepare_grid_variables
+!=======================================================================
+!=======================================================================
 SUBROUTINE get_grid_type_count
     IMPLICIT NONE
     INTEGER :: i, j, k, n 
@@ -178,8 +186,6 @@ SUBROUTINE get_grid_type_count
         DO i = 1, 16
             IF ( grid_type(n) .EQ. grid_type_array(i) ) THEN
                 grid_type_counter(i) = grid_type_counter(i) + 1
-    !            WRITE(*,'(A,I0,A,A)') 'grid number ', n,' has grid type ', grid_type(n)
-    !            WRITE(*,'(A,I0)') 'total grids of this type --> ', grid_type_counter(i)
             END IF
         END DO
     END DO
