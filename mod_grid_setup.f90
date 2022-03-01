@@ -10,9 +10,9 @@ MODULE mod_grid_setup
     INTEGER, DIMENSION(:,:),    ALLOCATABLE :: dims
     REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: xc, yc, zc 
     REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: rmin, rmax, b
-    REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: xspan, xstart
-    REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: yspan, ystart 
-    REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: zspan, zstart
+    REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: xspan, xstart, x_off, tau_x
+    REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: yspan, ystart, y_off, tau_y 
+    REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: zspan, zstart, z_off, tau_z
 
     CHARACTER(LEN=100),         ALLOCATABLE :: fname(:)
     CHARACTER(LEN=20),          ALLOCATABLE :: grid_type(:)
@@ -40,30 +40,30 @@ MODULE mod_grid_setup
     NAMELIST /general_data/           ng_total
     NAMELIST /grid_filenames/         fname
     NAMELIST /grid_type_data/         grid_type
-    NAMELIST /cylinder_data/          dims, rmin, rmax, b, xc, yc, zspan
-    NAMELIST /box_uniform_data/       dims, xspan, yspan, zspan, xstart, ystart, zstart 
-    NAMELIST /box_stretched_x_data/   dims, xspan, yspan, zspan, xstart, ystart, zstart
-    NAMELIST /box_stretched_y_data/   dims, xspan, yspan, zspan, xstart, ystart, zstart 
-    NAMELIST /box_stretched_z_data/   dims, xspan, yspan, zspan, xstart, ystart, zstart 
-    NAMELIST /box_stretched_xy_data/  dims, xspan, yspan, zspan, xstart, ystart, zstart 
-    NAMELIST /box_stretched_xz_data/  dims, xspan, yspan, zspan, xstart, ystart, zstart 
-    NAMELIST /box_stretched_yz_data/  dims, xspan, yspan, zspan, xstart, ystart, zstart 
-    NAMELIST /box_stretched_xyx_data/ dims, xspan, yspan, zspan, xstart, ystart, zstart 
-    NAMELIST /wall_boundary_x_data/   dims, xspan, yspan, zspan, xstart, ystart, zstart 
-    NAMELIST /wall_boundary_y_data/   dims, xspan, yspan, zspan, xstart, ystart, zstart 
-    NAMELIST /wall_boundary_z_data/   dims, xspan, yspan, zspan, xstart, ystart, zstart 
-    NAMELIST /wall_boundary_xy_data/  dims, xspan, yspan, zspan, xstart, ystart, zstart
-    NAMELIST /wall_boundary_xz_data/  dims, xspan, yspan, zspan, xstart, ystart, zstart
-    NAMELIST /wall_boundary_yz_data/  dims, xspan, yspan, zspan, xstart, ystart, zstart
-    NAMELIST /wall_boundary_xyx_data/ dims, xspan, yspan, zspan, xstart, ystart, zstart  
+    NAMELIST /cylinder_data/          ni, nj, nk, rmin, rmax, b, xc, yc, zspan
+    NAMELIST /box_uniform_data/       ni, nj, nk, xspan, yspan, zspan, xstart, ystart, zstart
+    NAMELIST /box_stretched_x_data/   ni, nj, nk, xspan, yspan, zspan, xstart, ystart, zstart, x_off
+    NAMELIST /box_stretched_y_data/   ni, nj, nk, xspan, yspan, zspan, xstart, ystart, zstart, y_off 
+    NAMELIST /box_stretched_z_data/   ni, nj, nk, xspan, yspan, zspan, xstart, ystart, zstart, z_off 
+    NAMELIST /box_stretched_xy_data/  ni, nj, nk, xspan, yspan, zspan, xstart, ystart, zstart, x_off, y_off 
+    NAMELIST /box_stretched_xz_data/  ni, nj, nk, xspan, yspan, zspan, xstart, ystart, zstart, x_off, z_off 
+    NAMELIST /box_stretched_yz_data/  ni, nj, nk, xspan, yspan, zspan, xstart, ystart, zstart, y_off, z_off, tau_y, tau_z 
+    NAMELIST /box_stretched_xyx_data/ ni, nj, nk, xspan, yspan, zspan, xstart, ystart, zstart, x_off, y_off, z_off 
+    NAMELIST /wall_boundary_x_data/   ni, nj, nk, xspan, yspan, zspan, xstart, ystart, zstart  
+    NAMELIST /wall_boundary_y_data/   ni, nj, nk, xspan, yspan, zspan, xstart, ystart, zstart  
+    NAMELIST /wall_boundary_z_data/   ni, nj, nk, xspan, yspan, zspan, xstart, ystart, zstart  
+    NAMELIST /wall_boundary_xy_data/  ni, nj, nk, xspan, yspan, zspan, xstart, ystart, zstart 
+    NAMELIST /wall_boundary_xz_data/  ni, nj, nk, xspan, yspan, zspan, xstart, ystart, zstart 
+    NAMELIST /wall_boundary_yz_data/  ni, nj, nk, xspan, yspan, zspan, xstart, ystart, zstart 
+    NAMELIST /wall_boundary_xyx_data/ ni, nj, nk, xspan, yspan, zspan, xstart, ystart, zstart   
 CONTAINS
 
 !! SUBROUTINES AND FUNCTIONS
 !======================================================================
 SUBROUTINE read_grid_parameters
-    USE, INTRINSIC :: iso_fortran_env, ONLY : stderr => error_unit
+    USE, INTRINSIC :: iso_fortran_env, only : stderr => error_unit
     IMPLICIT NONE
-    CHARACTER(len=100) :: input_fname
+    CHARACTER(LEN=100) :: input_fname
     INTEGER :: i, f_unit, io_stat
     LOGICAL :: ex_stat
     
@@ -71,35 +71,35 @@ SUBROUTINE read_grid_parameters
 
 
 
-    INQUIRE (FILE=TRIM(input_fname), EXIST=ex_stat)
-    IF (ex_stat .EQ. 0) THEN
-        WRITE(stderr, '(3a)') 'Error: file "', trim(input_fname), '" not found'
-    END IF
+    inquire (file=trim(input_fname), exist=ex_stat)
+    if (ex_stat .eq. 0) then
+        write(stderr, '(3a)') 'error: file "', trim(input_fname), '" not found'
+    end if
    
  
-    OPEN(FILE=TRIM(input_fname), newunit=f_unit, ACTION='READ',STATUS='OLD')
-    READ(NML=general_data, UNIT=f_unit, iostat=io_stat) 
-    IF (io_stat /= 0) THEN
-        WRITE(stderr, '(3a)') 'Error reading namelist general_data in "', trim(input_fname),'"'
-    END IF
+    open(file=trim(input_fname), newunit=f_unit, action='read',status='old')
+    read(nml=general_data, unit=f_unit, iostat=io_stat) 
+    if (io_stat /= 0) then
+        write(stderr, '(3a)') 'error reading namelist general_data in "', trim(input_fname),'"'
+    end if
 
-    ALLOCATE(fname(ng_total))
-    ALLOCATE(grid_type(ng_total))
+    allocate(fname(ng_total))
+    allocate(grid_type(ng_total))
     !============================================================= 
 
-    READ(NML=grid_filenames, UNIT=f_unit, iostat=io_stat) 
-    IF (io_stat /= 0) THEN
-        WRITE(stderr, '(3a)') 'Error reading namelist Grid_Filenames in "', trim(input_fname),'"'
-    END IF
+    read(nml=grid_filenames, unit=f_unit, iostat=io_stat) 
+    if (io_stat /= 0) then
+        write(stderr, '(3a)') 'error reading namelist grid_filenames in "', trim(input_fname),'"'
+    end if
     
-    READ(NML=grid_type_data, UNIT=f_unit, iostat=io_stat) 
-    IF (io_stat /= 0) THEN
-        WRITE(stderr, '(3a)') 'Error reading namelist grid_type_data in "', trim(input_fname),'"'
-    END IF
+    read(nml=grid_type_data, unit=f_unit, iostat=io_stat) 
+    if (io_stat /= 0) then
+        write(stderr, '(3a)') 'error reading namelist grid_type_data in "', trim(input_fname),'"'
+    end if
 
-    CALL get_grid_type_count
+    call get_grid_type_count
     
-    CLOSE(f_unit)
+    close(f_unit)
 
     !DO i = 1, ng_total
     !    grid_type_selector = grid_type(i)
@@ -155,9 +155,138 @@ SUBROUTINE prepare_grid_variables(ng,grid_type_str)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: ng
     CHARACTER(LEN=*), INTENT(IN) :: grid_type_str
+    INTEGER :: n
     WRITE(*,'(A,I0,A,A)') 'Creating ', ng, ' grids of type ', TRIM(grid_type_str)
+    
+        
+    grid_type_selector = grid_type_str
+    SELECT CASE ( grid_type_selector ) 
+        CASE ( gtype1 )
+            WRITE(*,*) 'gtype == ', TRIM(gtype1)
+
+        CASE ( gtype2 )
+            WRITE(*,*) 'gtype == ', TRIM(gtype2)
+
+        CASE ( gtype3 )
+            WRITE(*,*) 'gtype == ', TRIM(gtype3)
+
+        CASE ( gtype4 )
+            WRITE(*,*) 'gtype == ', TRIM(gtype4)
+
+        CASE ( gtype5 )
+            WRITE(*,*) 'gtype == ', TRIM(gtype5)
+
+        CASE ( gtype6 )
+            WRITE(*,*) 'gtype == ', TRIM(gtype6)
+
+        CASE ( gtype7 )
+            WRITE(*,*) 'gtype == ', TRIM(gtype7)
+    
+        CASE ( gtype8 )
+            CALL allocate_vars(ng)
+            CALL box_stretched_yz(ng)
+            CALL deallocate_vars(ng)
+        CASE ( gtype9 )
+            WRITE(*,*) 'gtype == ', TRIM(gtype9)
+
+        CASE ( gtype10 )
+            WRITE(*,*) 'gtype == ', TRIM(gtype10)
+
+        CASE ( gtype11 )
+            WRITE(*,*) 'gtype == ', TRIM(gtype11)
+
+        CASE ( gtype12 )
+            WRITE(*,*) 'gtype == ', TRIM(gtype12)
+
+        CASE ( gtype13 )
+            WRITE(*,*) 'gtype == ', TRIM(gtype13)
+
+        CASE DEFAULT
+            WRITE(*,*) 'SPECIFY VALID GRID TYPE'
+    END SELECT
+
+    
 
 END SUBROUTINE prepare_grid_variables
+!=======================================================================
+!=======================================================================
+SUBROUTINE allocate_vars(ng)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: ng
+    ALLOCATE(ni(ng))
+    ALLOCATE(nj(ng))
+    ALLOCATE(nk(ng))
+    ALLOCATE(rmin(ng))
+    ALLOCATE(rmax(ng))
+    ALLOCATE(b(ng))
+    ALLOCATE(xc(ng))
+    ALLOCATE(yc(ng))
+    ALLOCATE(xspan(ng))
+    ALLOCATE(yspan(ng))
+    ALLOCATE(zspan(ng))
+    ALLOCATE(xstart(ng))
+    ALLOCATE(ystart(ng))
+    ALLOCATE(zstart(ng))
+    ALLOCATE(x_off(ng))
+    ALLOCATE(y_off(ng))
+    ALLOCATE(z_off(ng))
+    ALLOCATE(tau_x(ng))
+    ALLOCATE(tau_y(ng))
+    ALLOCATE(tau_z(ng))
+END SUBROUTINE allocate_vars
+!=======================================================================
+!=======================================================================
+!=======================================================================
+!=======================================================================
+SUBROUTINE deallocate_vars(ng)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: ng
+    DEALLOCATE(ni)
+    DEALLOCATE(nj)
+    DEALLOCATE(nk)
+    DEALLOCATE(rmin)
+    DEALLOCATE(rmax)
+    DEALLOCATE(b)
+    DEALLOCATE(xc)
+    DEALLOCATE(yc)
+    DEALLOCATE(xspan)
+    DEALLOCATE(yspan)
+    DEALLOCATE(zspan)
+    DEALLOCATE(xstart)
+    DEALLOCATE(ystart)
+    DEALLOCATE(zstart)
+    DEALLOCATE(x_off)
+    DEALLOCATE(y_off)
+    DEALLOCATE(z_off)
+    DEALLOCATE(tau_x)
+    DEALLOCATE(tau_y)
+    DEALLOCATE(tau_z)
+END SUBROUTINE deallocate_vars
+!=======================================================================
+!=======================================================================
+SUBROUTINE box_stretched_yz(ng)
+    USE, INTRINSIC :: iso_fortran_env, only : stderr => error_unit
+    IMPLICIT NONE
+    CHARACTER(LEN=100) :: input_fname
+    INTEGER :: i, f_unit, io_stat, n
+    LOGICAL :: ex_stat
+    INTEGER, INTENT(IN) :: ng
+
+    input_fname = 'grid_parameters.dat'
+
+    open(file=trim(input_fname), newunit=f_unit, action='read',status='old')
+    read(nml=box_stretched_yz_data, unit=f_unit, iostat=io_stat) 
+    if (io_stat /= 0) then
+        write(stderr, '(3a)') 'error reading namelist general_data in "', trim(input_fname),'"'
+    end if
+    
+    DO n = 1, ng
+    
+
+    
+    END DO 
+
+END SUBROUTINE box_stretched_yz
 !=======================================================================
 !=======================================================================
 SUBROUTINE get_grid_type_count

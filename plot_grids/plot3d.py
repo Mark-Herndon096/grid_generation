@@ -2,7 +2,7 @@
 import numpy as np
 import struct as st
 
-def read_grid_file(filename) :
+def read_p3d_grid_file(filename) :
 	def fopen(filename) :
 		fid = open(filename,"rb")
 		return fid

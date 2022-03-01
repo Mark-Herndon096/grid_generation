@@ -7,17 +7,17 @@
 ! For each grid type, specifcy number of grids (ng) for that specific
 ! type in the appropriate namelist
 &GENERAL_DATA
-    ng_total = 6  ! Total number of grid files
+    ng_total = 1 ! Total number of grid files
 /&END
 !=======================================================================
 !=======================================================================
 &GRID_FILENAMES
     fname(1) = 'grid_1.x'
-    fname(2) = 'grid_2.x'
-    fname(3) = 'grid_2.x'
-    fname(4) = 'grid_2.x'
-    fname(5) = 'grid_2.x'
-    fname(6) = 'grid_2.x'
+!    fname(2) = 'grid_2.x'
+!    fname(3) = 'grid_2.x'
+!    fname(4) = 'grid_2.x'
+!    fname(5) = 'grid_2.x'
+!    fname(6) = 'grid_2.x'
 /&END
 
 !=======================================================================
@@ -45,25 +45,8 @@
 !		grid_type(n) = 'wall_boundary_yz'
 !		grid_type(n) = 'wall_boundary_xyz'
 
-&GrID_TYPE_DATA
-	grid_type(1)  = 'cylinder'
-	grid_type(2)  = 'box_uniform'
-	grid_type(3)  = 'box_uniform'
-	grid_type(4)  = 'box_uniform'
- 	grid_type(5)  = 'box_stretched_x'
- 	grid_type(6)  = 'box_stretched_y'
-!	grid_type(5)  = 'box_stretched_z'
-!	grid_type(6)  = 'box_stretched_xy'
-!	grid_type(7)  = 'box_stretched_xz'
-!	grid_type(8)  = 'box_stretched_yz'
-!	grid_type(9)  = 'box_stretched_xyz'
-!	grid_type(10) = 'wall_boundary_x'
-!	grid_type(11) = 'wall_boundary_y'
-!	grid_type(12) = 'wall_boundary_z'
-!	grid_type(13) = 'wall_boundary_xy'
-!	grid_type(14) = 'wall_boundary_xz'
-!	grid_type(15) = 'wall_boundary_yz'
-!	grid_type(16) = 'wall_boundary_xyz'
+&GRID_TYPE_DATA
+	grid_type(1)  = 'box_stretched_yz'
 /&END
 
 
@@ -117,6 +100,23 @@
 	xstart(1) = !> starting x-coordinate of box		
 	ystart(1) = !> starting y-coordinate of box		
 	zstart(1) = !> starting z-coordinate of box		
+/&END
+!=======================================================================
+!=======================================================================
+&BOX_STRETCHED_YZ_DATA
+  ni(1)     = 100  !< number of grid points in i-direction
+  nj(1)     = 100  !< number of grid points in j-direction
+  nk(1)     = 100  !< number of grid points in k-direction
+	xspan(1)  = 10.0 !> box xspan
+	yspan(1)  = 10.0 !> box xspan
+	zspan(1)  = 10.0 !> box xspan
+	xstart(1) = -5.0 !> starting x-coordinate of box		
+	ystart(1) = -5.0 !> starting y-coordinate of box		
+	zstart(1) = -5.0 !> starting z-coordinate of box		
+	y_off(1)  =  0.0 !< offset of center of stretching in y
+	z_off(1)  =  0.0 !< offset of center of stretching in z
+	tau_y(1)  =  2.0 !> stretching parameter in y
+	tau_z(1)  =  2.0 !> stretching parameter in z
 /&END
 !=======================================================================
 !=======================================================================
